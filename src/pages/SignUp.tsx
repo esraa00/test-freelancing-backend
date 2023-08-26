@@ -22,7 +22,7 @@ export default function SignUpPage() {
 
   return (
     <>
-      <div className=" w-[100vw] h-[100vh] flex items-center justify-center">
+      <form className=" w-[100vw] h-[100vh] flex items-center justify-center">
         <div className="w-full flex items-center justify-center flex-col md:w-1/3 gap-2">
           <div className="flex flex-col items-center md:flex-row gap-2">
             <Input
@@ -71,7 +71,7 @@ export default function SignUpPage() {
             have an account? <Link to={"/login"}>Login</Link>
           </span>
         </div>
-      </div>
+      </form>
     </>
   );
 }
