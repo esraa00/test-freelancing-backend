@@ -1,10 +1,12 @@
 import { ChangeEvent, FormEvent, useState } from "react";
 import Button from "../components/Button";
 import Input from "../components/Input";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Alert from "../components/Alert";
+import EmailConfirmationModal from "../components/Modal/EmailConfirmationModal";
 
 export default function SignUpPage() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -20,8 +22,13 @@ export default function SignUpPage() {
     message: "",
   });
 
-  console.log("requestStatus", requestStatus);
-  console.log("form data", formData);
+  const closeModal = () => {
+    setRequestStatus({
+      message: "",
+      status: null,
+    });
+    navigate("/login");
+  };
 
   const handleOnChange = (event: ChangeEvent<HTMLInputElement>) => {
     setFormData((prevFormData) => {
@@ -33,17 +40,25 @@ export default function SignUpPage() {
   };
 
   const handleOnSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    setRequestStatus({ status: null, message: "" });
     event.preventDefault();
-    const response = await fetch(`http://localhost:3000/signup`, {
+    const response = await fetch(`http://localhost:3000/api/auth/signup`, {
       body: JSON.stringify(formData),
+      headers: { "content-type": "application/json" },
       method: "POST",
     });
-    if (response.status != 200) {
+    const json = await response.json();
+    if (json.status != 200) {
       setRequestStatus({
         status: "failure",
-        message: "something went wrong, please try again later",
+        message: json.error,
       });
+      return;
     }
+    setRequestStatus({
+      status: "success",
+      message: "",
+    });
   };
 
   return (
@@ -108,6 +123,9 @@ export default function SignUpPage() {
               message={requestStatus.message}
               status={requestStatus.status}
             />
+          )}
+          {requestStatus.status === "success" && (
+            <EmailConfirmationModal closeModal={closeModal} />
           )}
         </div>
       </form>
