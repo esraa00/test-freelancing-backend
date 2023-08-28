@@ -5,8 +5,32 @@ import { Link, useNavigate } from "react-router-dom";
 import Alert from "../components/Alert";
 import EmailConfirmationModal from "../components/Modal/EmailConfirmationModal";
 import { ClosedEyeIcon, OpenedEyeIcon } from "../components/icons";
+import PasswordRule from "../components/PasswordRule";
 
 export default function SignUpPage() {
+  const REQUIREMENTS = [
+    {
+      name: "minLength",
+      label: "At least 8 characters",
+    },
+    {
+      name: "hasUppercase",
+      label: "Contains an uppercase letter",
+    },
+    {
+      name: "hasLowercase",
+      label: "Contains a lowercase letter",
+    },
+    {
+      name: "hasNumber",
+      label: "Contains a number",
+    },
+    {
+      name: "hasSpecialChar",
+      label: "Contains a special character",
+    },
+  ];
+
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     firstName: "",
@@ -23,6 +47,23 @@ export default function SignUpPage() {
     message: "",
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [requirements, setRequirements] = useState<{ [key: string]: boolean }>(
+    REQUIREMENTS.reduce((acc, requirement) => {
+      acc[requirement.name] = false;
+      return acc;
+    }, {})
+  );
+
+  const checkRequirements = (value: string) => {
+    const updatedRequirements = {
+      minLength: value.length >= 8,
+      hasUppercase: /[A-Z]/.test(value),
+      hasLowercase: /[a-z]/.test(value),
+      hasNumber: /\d/.test(value),
+      hasSpecialChar: /[!@#$%^&*]/.test(value),
+    };
+    setRequirements(updatedRequirements);
+  };
 
   const closeModal = () => {
     setRequestStatus({
@@ -48,6 +89,16 @@ export default function SignUpPage() {
   const handleOnSubmit = async (event: FormEvent<HTMLFormElement>) => {
     setRequestStatus({ status: null, message: "" });
     event.preventDefault();
+
+    if (Object.values(requirements).some((fulfilled) => !fulfilled)) {
+      setRequestStatus({
+        status: "failure",
+        message:
+          "Please make sure all the required rules for the password are achieved",
+      });
+      return;
+    }
+
     const response = await fetch(`http://localhost:3000/api/auth/signup`, {
       body: JSON.stringify(formData),
       headers: { "content-type": "application/json" },
@@ -119,7 +170,10 @@ export default function SignUpPage() {
                 placeholder: "Password",
                 name: "password",
                 type: showPassword ? "text" : "password",
-                onChange: handleOnChange,
+                onChange: (e) => {
+                  handleOnChange(e);
+                  checkRequirements(e.target.value);
+                },
                 value: formData.password,
                 required: true,
               }}
@@ -134,6 +188,15 @@ export default function SignUpPage() {
               Login
             </Link>
           </span>
+          <ul className="flex flex-col gap-2">
+            {REQUIREMENTS.map((requirement) => (
+              <PasswordRule
+                key={requirement.name}
+                requirement={requirement}
+                fulfilled={requirements[requirement.name]}
+              />
+            ))}
+          </ul>
           {requestStatus.status === "failure" && (
             <Alert
               message={requestStatus.message}
