@@ -4,6 +4,7 @@ import Input from "../components/Input";
 import { Link, useNavigate } from "react-router-dom";
 import Alert from "../components/Alert";
 import EmailConfirmationModal from "../components/Modal/EmailConfirmationModal";
+import { ClosedEyeIcon, OpenedEyeIcon } from "../components/icons";
 
 export default function SignUpPage() {
   const navigate = useNavigate();
@@ -21,6 +22,7 @@ export default function SignUpPage() {
     status: null,
     message: "",
   });
+  const [showPassword, setShowPassword] = useState(false);
 
   const closeModal = () => {
     setRequestStatus({
@@ -37,6 +39,10 @@ export default function SignUpPage() {
         [event.target.name]: event.target.value,
       };
     });
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
   };
 
   const handleOnSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -102,10 +108,17 @@ export default function SignUpPage() {
               }}
             />
             <Input
+              icon={
+                showPassword ? (
+                  <ClosedEyeIcon onClick={togglePasswordVisibility} />
+                ) : (
+                  <OpenedEyeIcon onClick={togglePasswordVisibility} />
+                )
+              }
               attributes={{
                 placeholder: "Password",
                 name: "password",
-                type: "password",
+                type: showPassword ? "text" : "password",
                 onChange: handleOnChange,
                 value: formData.password,
                 required: true,
