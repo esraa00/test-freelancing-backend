@@ -128,8 +128,11 @@ export default function SignUpPage() {
           <Button type="primary" className="w-5/6 md:w-full">
             SignUp
           </Button>
-          <span>
-            have an account? <Link to={"/login"}>Login</Link>
+          <span className="font-bold">
+            have an account?{" "}
+            <Link to={"/login"} className="text-green-700">
+              Login
+            </Link>
           </span>
           {requestStatus.status === "failure" && (
             <Alert
