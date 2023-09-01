@@ -2,18 +2,26 @@ import { ChangeEvent, FormEvent, useState } from "react";
 import Input from "../components/Input";
 import { ClosedEyeIcon, OpenedEyeIcon } from "../components/icons";
 import Button from "../components/Button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import Alert from "../components/Alert";
 export default function LoginPage() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
     rememberMe: false,
   });
+  const [requestStatus, setRequestStatus] = useState<{
+    status: "failure" | "success" | null;
+    message: string;
+  }>({
+    status: null,
+    message: "",
+  });
   const [showPassword, setShowPassword] = useState(false);
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
-  console.log("form data ", formData);
 
   const handleOnChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = event.target;
@@ -28,12 +36,31 @@ export default function LoginPage() {
 
   const handleOnSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setRequestStatus({ status: null, message: "" });
     const response = await fetch(`http://localhost:3000/api/auth/login`, {
       body: JSON.stringify(formData),
       headers: { "content-type": "application/json" },
       method: "POST",
     });
-    const json = await response.json();
+    const {
+      status,
+      message,
+      data,
+    }: {
+      status: number;
+      message?: string;
+      data: { isOtpVerified: boolean };
+    } = await response.json();
+
+    if (status != 200) {
+      setRequestStatus({ message, status: "failure" });
+      return;
+    }
+    if (data.isOtpVerified) {
+      navigate("/otp");
+    } else {
+      navigate("/otpSetup");
+    }
   };
 
   return (
@@ -93,6 +120,12 @@ export default function LoginPage() {
               Create An Account
             </Link>
           </span>
+          {requestStatus.status === "failure" && (
+            <Alert
+              message={requestStatus.message}
+              status={requestStatus.status}
+            />
+          )}
         </div>
       </form>
     </>
