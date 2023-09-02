@@ -1,5 +1,7 @@
 import React, { useState, useRef } from "react";
 import Button from "../components/Button";
+import Alert from "../components/Alert";
+import { useNavigate } from "react-router-dom";
 
 function OTPInputField({
   value,
@@ -29,7 +31,15 @@ function OTPInputField({
 }
 
 export default function Otp() {
+  const navigate = useNavigate();
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const [requestStatus, setRequestStatus] = useState<{
+    status: "failure" | "success" | null;
+    message: string;
+  }>({
+    status: null,
+    message: "",
+  });
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const handleInputChange = (newValue: string, index: number) => {
@@ -46,6 +56,27 @@ export default function Otp() {
 
   const refCallback = (el: HTMLInputElement | null, index: number) => {
     inputRefs.current[index] = el;
+  };
+
+  const handleButtonClick = async () => {
+    const otpValue = otp.join("");
+    const response = await fetch(
+      `http://localhost:3000/api/auth/otp/validate`,
+      {
+        method: "POST",
+        credentials: "include",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          otpValue,
+        }),
+      }
+    );
+    const json = await response.json();
+    if (json.status != 200) {
+      setRequestStatus({ status: "failure", message: json.message });
+      return;
+    }
+    navigate("/");
   };
 
   return (
@@ -67,7 +98,15 @@ export default function Otp() {
             />
           ))}
         </div>
-        <Button type="primary">Verify</Button>
+        <Button type="primary" attributes={{ onClick: handleButtonClick }}>
+          Submit
+        </Button>
+        {requestStatus.status === "failure" && (
+          <Alert
+            message={requestStatus.message}
+            status={requestStatus.status}
+          />
+        )}
       </div>
     </>
   );
