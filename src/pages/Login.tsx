@@ -41,6 +41,7 @@ export default function LoginPage() {
       body: JSON.stringify(formData),
       headers: { "content-type": "application/json" },
       method: "POST",
+      credentials: "include",
     });
     const {
       status,
