@@ -1,10 +1,28 @@
 import { useState, useEffect } from "react";
 import Button from "../components/Button";
+import { useNavigate } from "react-router-dom";
 
 const OtpSetupPage = () => {
+  const navigate = useNavigate();
   const [qrCodeDataURL, setQRCodeDataURL] = useState("");
 
-  useEffect(() => {}, []);
+  useEffect(() => {
+    const getUser = async () => {
+      const response = await fetch(
+        "http://localhost:3000/api/auth/otp/generate",
+        {
+          credentials: "include",
+        }
+      );
+      const json = await response.json();
+      setQRCodeDataURL(json.data);
+    };
+    getUser();
+  }, []);
+
+  const handleButtonClick = () => {
+    navigate("/otp");
+  };
 
   return (
     <div className="w-[100vw] h-[100vh] flex justify-center items-center flex-col">
@@ -36,7 +54,11 @@ const OtpSetupPage = () => {
           When Microsoft Authenticator app displays a six-digit code, click the
           Continue button below
         </span>
-        <Button className="mt-10" type="primary">
+        <Button
+          className="mt-10"
+          type="primary"
+          attributes={{ onClick: handleButtonClick }}
+        >
           Continue
         </Button>
       </div>
