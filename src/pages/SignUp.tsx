@@ -108,7 +108,7 @@ export default function SignUpPage() {
     if (json.status != 200) {
       setRequestStatus({
         status: "failure",
-        message: json.error,
+        message: json.message,
       });
       return;
     }
